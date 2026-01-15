@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Video,
   PlayCircle,
+  Building,
   Image as ImageIcon
 } from 'lucide-react';
 
@@ -26,6 +27,8 @@ interface TourSlide {
 }
 
 interface SettingsPanelProps {
+  academyName: string;
+  onAcademyNameUpdate: (name: string) => void;
   coaches: any[];
   onCoachesUpdate: (coaches: any[]) => void;
   adminProfile: { name: string; password: string };
@@ -44,6 +47,8 @@ interface SettingsPanelProps {
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ 
+  academyName,
+  onAcademyNameUpdate,
   coaches,
   onCoachesUpdate,
   adminProfile, 
@@ -54,6 +59,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onTourDataUpdate
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'account' | 'coaches' | 'tour' | 'links'>('account');
+  const [localAcademyName, setLocalAcademyName] = useState(academyName);
   const [localAdmin, setLocalAdmin] = useState(adminProfile);
   const [localCoaches, setLocalCoaches] = useState(coaches);
   const [localSocialLinks, setLocalSocialLinks] = useState(academyLinks);
@@ -63,7 +69,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  // مزامنة البيانات المحلية عند تحديث القائمة من المصدر
   useEffect(() => {
     setLocalCoaches(coaches);
   }, [coaches]);
@@ -75,12 +80,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
   const handleAdminSave = () => {
     onAdminUpdate(localAdmin);
-    triggerToast("تم تحديث بيانات المدير بنجاح");
+    onAcademyNameUpdate(localAcademyName);
+    triggerToast("تم تحديث بيانات المدير واسم الأكاديمية بنجاح");
   };
 
   const handleCoachesSave = () => {
     setIsSaving(true);
-    // تفعيل فوري لكلمات المرور الجديدة عبر تحديث الحالة الأبوية (App.tsx)
     setTimeout(() => {
       onCoachesUpdate(localCoaches);
       setIsSaving(false);
@@ -121,7 +126,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
       <div className="flex flex-wrap gap-2 bg-white p-2 rounded-[2rem] border border-gray-100 shadow-sm w-fit mx-auto lg:mx-0">
         {[
-          { id: 'account', label: 'حساب المدير', icon: UserCog },
+          { id: 'account', label: 'الحساب والهوية', icon: UserCog },
           { id: 'coaches', label: 'الكادر التدريبي', icon: Users },
           { id: 'tour', label: 'الجولة التعريفية', icon: Video },
           { id: 'links', label: 'الروابط العامة', icon: Globe },
@@ -141,31 +146,53 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         <section className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden border-r-8 border-r-blue-600 animate-in fade-in zoom-in-95">
           <div className="p-8 border-b border-gray-100 bg-blue-50/30 flex items-center gap-3 text-blue-700">
             <UserCog size={24} />
-            <h3 className="text-xl font-black">إدارة حساب المدير</h3>
+            <h3 className="text-xl font-black">إدارة الحساب وهوية الأكاديمية</h3>
           </div>
-          <div className="p-8 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-8 space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-500 mr-2">اسم المدير</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2 flex items-center gap-2">
+                  <Building size={12} className="text-blue-500" /> اسم الأكاديمية الرسمي
+                </label>
+                <input 
+                  type="text" 
+                  value={localAcademyName} 
+                  onChange={(e) => setLocalAcademyName(e.target.value)}
+                  placeholder="مثال: أكاديمية النخبة"
+                  className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-black text-gray-800 focus:bg-white focus:border-blue-300 transition-all shadow-inner" 
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">اسم مدير النظام</label>
                 <input 
                   type="text" 
                   value={localAdmin.name} 
                   onChange={(e) => setLocalAdmin({...localAdmin, name: e.target.value})}
-                  className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-black text-gray-800 focus:bg-white focus:border-blue-300 transition-all" 
+                  className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-black text-gray-800 focus:bg-white focus:border-blue-300 transition-all shadow-inner" 
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-500 mr-2 text-right">كلمة المرور</label>
-                <input 
-                  type="text"
-                  value={localAdmin.password} 
-                  onChange={(e) => setLocalAdmin({...localAdmin, password: e.target.value})}
-                  className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-mono font-bold text-gray-800 focus:bg-white focus:border-blue-300 transition-all" 
-                />
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">كلمة مرور المدير</label>
+                <div className="relative">
+                  <input 
+                    type={visiblePasswords['admin'] ? "text" : "password"}
+                    value={localAdmin.password} 
+                    onChange={(e) => setLocalAdmin({...localAdmin, password: e.target.value})}
+                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-mono font-bold text-gray-800 focus:bg-white focus:border-blue-300 transition-all pr-12 shadow-inner" 
+                  />
+                  <button 
+                    onClick={() => togglePassword('admin')}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600"
+                  >
+                    {visiblePasswords['admin'] ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="flex justify-end">
-              <button onClick={handleAdminSave} className="px-8 py-3 bg-blue-600 text-white rounded-2xl font-black text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">حفظ الإعدادات</button>
+            <div className="flex justify-end pt-4">
+              <button onClick={handleAdminSave} className="px-12 py-4 bg-blue-600 text-white rounded-2xl font-black text-sm hover:bg-blue-700 transition-all shadow-2xl shadow-blue-100 flex items-center gap-3">
+                <Save size={20} /> اعتماد وحفظ الهوية
+              </button>
             </div>
           </div>
         </section>

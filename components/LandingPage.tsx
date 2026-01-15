@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 
 interface LandingPageProps {
+  academyName: string;
   onStaffClick: () => void;
   onMemberClick: () => void;
   onVisitorClick: () => void;
@@ -29,6 +30,7 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ 
+  academyName,
   onStaffClick, 
   onMemberClick, 
   onVisitorClick,
@@ -47,7 +49,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
              <Trophy size={28} className="text-emerald-950" />
           </div>
           <div>
-            <h1 className="text-2xl font-black tracking-tight">أكاديمية النخبة</h1>
+            <h1 className="text-2xl font-black tracking-tight">{academyName}</h1>
             <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">إدارة المواهب الرياضية</p>
           </div>
         </div>
@@ -67,7 +69,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
           مستقبل <span className="text-emerald-500">كرة القدم</span> يبدأ من هنا
         </h2>
         <h3 className="text-gray-400 text-lg md:text-xl max-w-2xl mb-12 leading-relaxed">
-          نظام متكامل لإدارة اللاعبين، المدربين، والعمليات الفنية بأحدث تقنيات الذكاء الاصطناعي.
+          نظام متكامل لإدارة اللاعبين، المدربين، والعمليات الفنية بأحدث تقنيات الذكاء الاصطناعي في <span className="text-emerald-400">{academyName}</span>.
         </h3>
 
         {/* Portal Cards */}
@@ -180,7 +182,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
           حي المرجان، جدة، المملكة العربية السعودية
         </div>
         <div className="flex items-center gap-2">
-           <span>© 2024 أكاديمية النخبة</span>
+           <span>© 2024 {academyName}</span>
            <span className="w-1 h-1 bg-gray-700 rounded-full"></span>
            <span>جميع الحقوق محفوظة</span>
         </div>

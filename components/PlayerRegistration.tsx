@@ -4,7 +4,6 @@ import { ArrowRight, Upload, User, Users, Phone, Mail, Calendar, Info, ShieldChe
 import { AGE_GROUPS, LEVELS, TEAMS } from '../constants';
 import { registerNewPlayer } from '../services/playerService';
 
-// تم نقل هذا المكون للخارج لمنع فقدان التركيز (Focus) أثناء الكتابة
 const InputGroup = ({ label, icon: Icon, type = "text", placeholder, name, required = true, value, onChange }: any) => (
   <div className="space-y-2 text-right">
     <label className="text-xs font-black text-gray-500 uppercase tracking-widest mr-4">
@@ -26,11 +25,12 @@ const InputGroup = ({ label, icon: Icon, type = "text", placeholder, name, requi
 );
 
 interface PlayerRegistrationProps {
+  academyName: string;
   onBack: () => void;
   onSuccess: () => void;
 }
 
-const PlayerRegistration: React.FC<PlayerRegistrationProps> = ({ onBack, onSuccess }) => {
+const PlayerRegistration: React.FC<PlayerRegistrationProps> = ({ academyName, onBack, onSuccess }) => {
   const [step, setStep] = useState<1 | 2>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -94,7 +94,7 @@ const PlayerRegistration: React.FC<PlayerRegistrationProps> = ({ onBack, onSucce
             <ArrowRight size={24} />
           </button>
           <div>
-            <h2 className="text-3xl font-black text-gray-800 tracking-tighter">طلب الانضمام</h2>
+            <h2 className="text-3xl font-black text-gray-800 tracking-tighter">طلب الانضمام لـ {academyName}</h2>
             <p className="text-xs text-emerald-600 font-bold mt-1">سجل بياناتك وسيتم مراجعتها من قبل الإدارة</p>
           </div>
         </div>
@@ -109,7 +109,6 @@ const PlayerRegistration: React.FC<PlayerRegistrationProps> = ({ onBack, onSucce
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* خانة اسم اللاعب - تبقى مفتوحة وظاهرة دائماً */}
         <section className="bg-white p-10 rounded-[3rem] border border-emerald-100 shadow-sm border-r-8 border-r-emerald-500 animate-in fade-in">
           <div className="flex items-center gap-4 mb-6 text-emerald-600">
             <div className="p-3 bg-emerald-50 rounded-2xl">
@@ -206,7 +205,7 @@ const PlayerRegistration: React.FC<PlayerRegistrationProps> = ({ onBack, onSucce
                 <div>
                   <h4 className="font-black text-blue-900 mb-1 text-lg">مراجعة البيانات</h4>
                   <p className="text-sm text-blue-800 font-bold leading-relaxed">
-                    أنت تسجل الآن اللاعب: <span className="font-black text-blue-600 underline">{formData.fullName || '...'}</span>. 
+                    أنت تسجل الآن اللاعب: <span className="font-black text-blue-600 underline">{formData.fullName || '...'}</span> في <span className="font-black">{academyName}</span>. 
                     سيتم مراجعة الطلب من قبل الإدارة وإرسال الموافقة فور تدقيق المستندات.
                   </p>
                 </div>

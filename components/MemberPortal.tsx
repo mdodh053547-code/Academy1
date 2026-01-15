@@ -22,31 +22,29 @@ import {
   CalendarDays,
   Timer,
   AlertCircle,
-  // Fix: Added missing ChevronLeft import
   ChevronLeft
 } from 'lucide-react';
 import { markAsPaid } from '../services/playerService';
 
 interface MemberPortalProps {
+  academyName: string;
   onBack: () => void;
   player: any;
 }
 
-const MemberPortal: React.FC<MemberPortalProps> = ({ onBack, player }) => {
+const MemberPortal: React.FC<MemberPortalProps> = ({ academyName, onBack, player }) => {
   const [activeTab, setActiveTab] = useState<'profile' | 'schedule' | 'finance'>('profile');
   const [isPaying, setIsPaying] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'mada' | 'stcpay'>('mada');
 
   if (!player) return null;
 
-  // محاكاة لجدول التمارين بناءً على الفريق
   const trainingSchedule = [
     { day: 'السبت', time: '05:00 م', field: 'ملعب (أ)', type: 'تدريب مهارات وتكتيك' },
     { day: 'الاثنين', time: '05:00 م', field: 'ملعب (ب)', type: 'لياقة بدنية مكثفة' },
     { day: 'الأربعاء', time: '05:00 م', field: 'ملعب (أ)', type: 'تقسيمة ومناورة' },
   ];
 
-  // محاكاة لسجل المدفوعات
   const paymentHistory = [
     { id: 'TX-9921', date: '2024/05/01', amount: '1,200', status: 'paid', period: 'باقة الـ 3 أشهر (مايو - يوليو)' },
     { id: 'TX-4410', date: '2024/02/01', amount: '1,200', status: 'paid', period: 'باقة الـ 3 أشهر (فبراير - أبريل)' },
@@ -57,7 +55,7 @@ const MemberPortal: React.FC<MemberPortalProps> = ({ onBack, player }) => {
     try {
       await markAsPaid(player.id);
       player.paymentStatus = 'paid';
-      alert("تمت عملية الدفع بنجاح! أهلاً بك في الأكاديمية.");
+      alert(`تمت عملية الدفع بنجاح! أهلاً بك في ${academyName}.`);
     } catch (e) {
       alert("حدث خطأ أثناء معالجة الدفع.");
     } finally {
@@ -73,7 +71,7 @@ const MemberPortal: React.FC<MemberPortalProps> = ({ onBack, player }) => {
              <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-inner">
                 <CheckCircle2 size={48} />
              </div>
-             <h1 className="text-4xl font-black text-gray-800">مبارك القبول!</h1>
+             <h1 className="text-4xl font-black text-gray-800">مبارك القبول في {academyName}!</h1>
              <p className="text-gray-500 font-bold text-lg">تم قبول طلب انضمامك يا بطل. تتبقى خطوة واحدة أخيرة لتفعيل عضويتك وهي سداد الرسوم.</p>
           </div>
 
@@ -125,7 +123,6 @@ const MemberPortal: React.FC<MemberPortalProps> = ({ onBack, player }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 font-['Cairo'] text-right pb-10" dir="rtl">
-      {/* Top Header */}
       <div className="bg-emerald-900 text-white p-6 md:p-12 rounded-b-[4rem] shadow-2xl relative overflow-hidden border-b-8 border-emerald-500">
         <div className="relative z-10 container mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-8">
@@ -141,7 +138,7 @@ const MemberPortal: React.FC<MemberPortalProps> = ({ onBack, player }) => {
               {player.fullName?.charAt(0) || <User size={48} />}
             </div>
             <div>
-              <p className="text-emerald-300 text-sm font-black uppercase tracking-widest mb-1 opacity-80">بوابة اللاعب</p>
+              <p className="text-emerald-300 text-sm font-black uppercase tracking-widest mb-1 opacity-80">بوابة لاعب {academyName}</p>
               <h1 className="text-3xl md:text-5xl font-black tracking-tighter">{player.fullName}</h1>
               <p className="text-emerald-200 text-sm mt-2 font-bold bg-white/5 w-fit px-4 py-1 rounded-full border border-white/10">{player.team} • {player.ageGroup}</p>
             </div>
@@ -157,7 +154,6 @@ const MemberPortal: React.FC<MemberPortalProps> = ({ onBack, player }) => {
       </div>
 
       <main className="container mx-auto px-6 -mt-10 relative z-20 space-y-8">
-        {/* Navigation Tabs */}
         <div className="bg-white p-3 rounded-[2.5rem] shadow-2xl border border-gray-100 flex gap-3 max-w-3xl mx-auto">
           {[
             { id: 'profile', label: 'ملفي الرياضي', icon: Activity },
@@ -177,7 +173,6 @@ const MemberPortal: React.FC<MemberPortalProps> = ({ onBack, player }) => {
           ))}
         </div>
 
-        {/* Profile Tab */}
         {activeTab === 'profile' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
             <div className="lg:col-span-2 space-y-8">
@@ -230,7 +225,6 @@ const MemberPortal: React.FC<MemberPortalProps> = ({ onBack, player }) => {
           </div>
         )}
 
-        {/* Schedule Tab */}
         {activeTab === 'schedule' && (
           <div className="max-w-4xl mx-auto space-y-8 animate-in slide-in-from-left-8 duration-700">
              <div className="bg-white p-10 rounded-[3.5rem] border border-gray-100 shadow-sm space-y-8">
@@ -285,7 +279,6 @@ const MemberPortal: React.FC<MemberPortalProps> = ({ onBack, player }) => {
           </div>
         )}
 
-        {/* Finance Tab */}
         {activeTab === 'finance' && (
           <div className="max-w-4xl mx-auto space-y-8 animate-in slide-in-from-right-8 duration-700">
              <div className="bg-white p-10 rounded-[3.5rem] border border-gray-100 shadow-sm space-y-10">

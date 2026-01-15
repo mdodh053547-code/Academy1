@@ -4,6 +4,7 @@ import { MENU_ITEMS, COLORS } from '../constants';
 import { LogOut, Bell, Menu, X, User, CheckCircle2, AlertCircle, BrainCircuit, Wallet, Trash2 } from 'lucide-react';
 
 interface LayoutProps {
+  academyName: string;
   children: React.ReactNode;
   activeTab: string;
   setActiveTab: (tab: string) => void;
@@ -22,7 +23,7 @@ interface Notification {
   isRead: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, userRole, userName, roleSwitcher, onLogout }) => {
+const Layout: React.FC<LayoutProps> = ({ academyName, children, activeTab, setActiveTab, userRole, userName, roleSwitcher, onLogout }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
@@ -86,7 +87,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, user
               <img src="https://picsum.photos/id/1058/40/40" className="w-8 h-8 rounded-full" alt="logo" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight">أكاديمية النخبة</h1>
+              <h1 className="text-xl font-bold tracking-tight">{academyName}</h1>
               <p className="text-xs text-emerald-400">بوابة الكادر الإداري</p>
             </div>
           </div>

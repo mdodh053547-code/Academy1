@@ -6,7 +6,6 @@ import {
   Filter, 
   UserPlus, 
   MoreVertical, 
-  BrainCircuit, 
   CheckCircle2, 
   User,
   Settings,
@@ -32,7 +31,6 @@ import {
   Key,
   ShieldAlert
 } from 'lucide-react';
-import { getPlayerInsights } from '../services/geminiService';
 import { subscribeToPlayers, updatePlayerProfile, deletePlayer, registerNewPlayer } from '../services/playerService';
 import PlayerRegistration from './PlayerRegistration';
 import { TEAMS, LEVELS, AGE_GROUPS } from '../constants';
@@ -49,13 +47,10 @@ const PlayerList: React.FC<PlayerListProps> = ({ initialView = 'list', onViewCha
   const [searchTerm, setSearchTerm] = useState('');
   const [activeAgeFilter, setActiveAgeFilter] = useState<string>('الكل');
   const [players, setPlayers] = useState<any[]>([]);
-  const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
   const [managingPlayer, setManagingPlayer] = useState<any>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [managementTab, setManagementTab] = useState<'info' | 'access'>('info');
   
-  const [aiInsight, setAiInsight] = useState<string>('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showToast, setShowToast] = useState<{show: boolean, msg: string, type: 'success' | 'error'}>({show: false, msg: '', type: 'success'});
   const [isLoading, setIsLoading] = useState(true);
 
@@ -137,25 +132,6 @@ const PlayerList: React.FC<PlayerListProps> = ({ initialView = 'list', onViewCha
     const pass = Math.random().toString(36).slice(-6).toUpperCase();
     setNewUsername(user);
     setNewPassword(pass);
-  };
-
-  const handleAnalyze = async (player: any) => {
-    setIsAnalyzing(true);
-    setSelectedPlayer(player);
-    const result = await getPlayerInsights({
-      name: player.fullName,
-      ageGroup: player.ageGroup,
-      metrics: player.metrics || { dribbling: 7, passing: 6, stamina: 8 }
-    });
-    setAiReportWithEffect(result);
-    setIsAnalyzing(false);
-  };
-
-  const setAiReportWithEffect = (text: string) => {
-    setAiInsight(text);
-    if (window.innerWidth < 1024) {
-      document.getElementById('ai-section')?.scrollIntoView({ behavior: 'smooth' });
-    }
   };
 
   const openManagement = (player: any) => {
@@ -351,7 +327,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ initialView = 'list', onViewCha
         </div>
       )}
 
-      {/* Management Modal (Enhanced with Access Tab) */}
+      {/* Management Modal */}
       {managingPlayer && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-emerald-950/60 backdrop-blur-xl animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-lg rounded-[3.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
@@ -539,197 +515,103 @@ const PlayerList: React.FC<PlayerListProps> = ({ initialView = 'list', onViewCha
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          {isLoading ? (
-            <div className="bg-white p-32 rounded-[3rem] border border-gray-100 text-center">
-              <RefreshCw className="animate-spin text-emerald-500 mx-auto mb-6" size={48} />
-              <p className="text-xl font-black text-gray-400">جاري مزامنة بيانات اللاعبين...</p>
+      <div className="space-y-6">
+        {isLoading ? (
+          <div className="bg-white p-32 rounded-[3rem] border border-gray-100 text-center">
+            <RefreshCw className="animate-spin text-emerald-500 mx-auto mb-6" size={48} />
+            <p className="text-xl font-black text-gray-400">جاري مزامنة بيانات اللاعبين...</p>
+          </div>
+        ) : filteredPlayers.length > 0 ? (
+          displayMode === 'cards' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-6 duration-500">
+              {filteredPlayers.map(player => (
+                <div key={player.id} className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden border-r-8 border-r-blue-600">
+                  <div className="flex items-start justify-between mb-8">
+                     <div className="flex items-center gap-5">
+                        <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-[1.5rem] flex items-center justify-center font-black text-2xl group-hover:bg-blue-600 group-hover:text-white transition-all shadow-inner">
+                          {player.fullName?.charAt(0)}
+                        </div>
+                        <div>
+                          <h4 className="text-xl font-black text-gray-800 leading-tight mb-1">{player.fullName}</h4>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">{player.team}</span>
+                            <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">{player.level}</span>
+                          </div>
+                        </div>
+                     </div>
+                     <div className="flex flex-col gap-2">
+                        <button onClick={() => openManagement(player)} className="p-2.5 text-gray-300 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"><Settings size={20} /></button>
+                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                     <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-center">
+                        <p className="text-[9px] text-gray-400 font-black uppercase mb-1">نسبة الحضور</p>
+                        <p className="text-lg font-black text-emerald-600">{player.attendanceRate || 85}%</p>
+                     </div>
+                     <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-center relative overflow-hidden group/item">
+                        <p className="text-[9px] text-gray-400 font-black uppercase mb-1">حالة نفاذ</p>
+                        <div className="flex items-center justify-center gap-2">
+                           {player.username ? (
+                             <span className="text-xs font-black text-emerald-600 flex items-center gap-1"><Fingerprint size={12}/> مرتبط</span>
+                           ) : (
+                             <span className="text-xs font-black text-gray-400 flex items-center gap-1 opacity-50"><ShieldAlert size={12}/> غير مرتبط</span>
+                           )}
+                        </div>
+                     </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ) : filteredPlayers.length > 0 ? (
-            displayMode === 'cards' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-6 duration-500">
-                {filteredPlayers.map(player => (
-                  <div key={player.id} className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden border-r-8 border-r-blue-600">
-                    <div className="flex items-start justify-between mb-8">
-                       <div className="flex items-center gap-5">
-                          <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-[1.5rem] flex items-center justify-center font-black text-2xl group-hover:bg-blue-600 group-hover:text-white transition-all shadow-inner">
+          ) : (
+            <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden animate-in fade-in duration-500">
+              <table className="w-full text-right border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 text-[10px] text-gray-400 uppercase tracking-widest font-black">
+                    <th className="px-8 py-6">اللاعب</th>
+                    <th className="px-8 py-6">الفريق</th>
+                    <th className="px-8 py-6">بوابة نفاذ</th>
+                    <th className="px-8 py-6 text-center">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filteredPlayers.map(player => (
+                    <tr key={player.id} className="hover:bg-gray-50 transition-all group">
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-4">
+                          <div className="w-11 h-11 bg-gray-100 text-gray-400 rounded-2xl flex items-center justify-center font-black text-sm group-hover:bg-blue-600 group-hover:text-white transition-all">
                             {player.fullName?.charAt(0)}
                           </div>
-                          <div>
-                            <h4 className="text-xl font-black text-gray-800 leading-tight mb-1">{player.fullName}</h4>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">{player.team}</span>
-                              <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">{player.level}</span>
-                            </div>
-                          </div>
-                       </div>
-                       <div className="flex flex-col gap-2">
-                          <button onClick={() => openManagement(player)} className="p-2.5 text-gray-300 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"><Settings size={20} /></button>
-                          <button onClick={() => handleAnalyze(player)} className="p-2.5 text-gray-300 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all"><BrainCircuit size={20} /></button>
-                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                       <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-center">
-                          <p className="text-[9px] text-gray-400 font-black uppercase mb-1">نسبة الحضور</p>
-                          <p className="text-lg font-black text-emerald-600">{player.attendanceRate || 85}%</p>
-                       </div>
-                       <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-center relative overflow-hidden group/item">
-                          <p className="text-[9px] text-gray-400 font-black uppercase mb-1">حالة نفاذ</p>
-                          <div className="flex items-center justify-center gap-2">
-                             {player.username ? (
-                               <span className="text-xs font-black text-emerald-600 flex items-center gap-1"><Fingerprint size={12}/> مرتبط</span>
-                             ) : (
-                               <span className="text-xs font-black text-gray-400 flex items-center gap-1 opacity-50"><ShieldAlert size={12}/> غير مرتبط</span>
-                             )}
-                          </div>
-                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden animate-in fade-in duration-500">
-                <table className="w-full text-right border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50 text-[10px] text-gray-400 uppercase tracking-widest font-black">
-                      <th className="px-8 py-6">اللاعب</th>
-                      <th className="px-8 py-6">الفريق</th>
-                      <th className="px-8 py-6">بوابة نفاذ</th>
-                      <th className="px-8 py-6 text-center">إجراءات</th>
+                          <span className="font-black text-gray-800">{player.fullName}</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-5">
+                        <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-[10px] font-black border border-blue-100">{player.team}</span>
+                      </td>
+                      <td className="px-8 py-5">
+                         {player.username ? (
+                           <span className="flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full w-fit"><Fingerprint size={12}/> مرتبط</span>
+                         ) : (
+                           <span className="flex items-center gap-1 text-[10px] font-black text-gray-400 bg-gray-50 px-3 py-1 rounded-full w-fit"><ShieldAlert size={12}/> غير مرتبط</span>
+                         )}
+                      </td>
+                      <td className="px-8 py-5 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                           <button onClick={() => openManagement(player)} className="p-2.5 text-emerald-600 hover:bg-emerald-100 rounded-xl transition-all"><Settings size={18}/></button>
+                        </div>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {filteredPlayers.map(player => (
-                      <tr key={player.id} className="hover:bg-gray-50 transition-all group">
-                        <td className="px-8 py-5">
-                          <div className="flex items-center gap-4">
-                            <div className="w-11 h-11 bg-gray-100 text-gray-400 rounded-2xl flex items-center justify-center font-black text-sm group-hover:bg-blue-600 group-hover:text-white transition-all">
-                              {player.fullName?.charAt(0)}
-                            </div>
-                            <span className="font-black text-gray-800">{player.fullName}</span>
-                          </div>
-                        </td>
-                        <td className="px-8 py-5">
-                          <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-[10px] font-black border border-blue-100">{player.team}</span>
-                        </td>
-                        <td className="px-8 py-5">
-                           {player.username ? (
-                             <span className="flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full w-fit"><Fingerprint size={12}/> مرتبط</span>
-                           ) : (
-                             <span className="flex items-center gap-1 text-[10px] font-black text-gray-400 bg-gray-50 px-3 py-1 rounded-full w-fit"><ShieldAlert size={12}/> غير مرتبط</span>
-                           )}
-                        </td>
-                        <td className="px-8 py-5 text-center">
-                          <div className="flex items-center justify-center gap-1">
-                             <button onClick={() => handleAnalyze(player)} className="p-2.5 text-purple-600 hover:bg-purple-100 rounded-xl transition-all"><BrainCircuit size={18}/></button>
-                             <button onClick={() => openManagement(player)} className="p-2.5 text-emerald-600 hover:bg-emerald-100 rounded-xl transition-all"><Settings size={18}/></button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )
-          ) : (
-            <div className="bg-white p-32 rounded-[3rem] border border-gray-100 text-center">
-               <Search size={64} className="mx-auto text-gray-100 mb-6" />
-               <p className="text-xl font-black text-gray-400 italic">لا يوجد نتائج تطابق بحثك حالياً..</p>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )}
-        </div>
-
-        {/* AI Insight Section */}
-        <div id="ai-section" className="space-y-6">
-          <div className="bg-gray-900 rounded-[3.5rem] p-10 text-white relative overflow-hidden shadow-2xl border-b-8 border-purple-600 group">
-             <div className="relative z-10">
-                <div className="flex items-center gap-3 text-purple-400 mb-8">
-                  <div className="p-3 bg-purple-500/20 rounded-2xl border border-purple-500/20 animate-pulse">
-                    <BrainCircuit size={32} />
-                  </div>
-                  <h3 className="text-2xl font-black tracking-tighter">التحليل الذكي (AI)</h3>
-                </div>
-
-                {isAnalyzing ? (
-                  <div className="py-20 text-center space-y-6">
-                    <div className="relative w-20 h-20 mx-auto">
-                      <div className="absolute inset-0 bg-purple-500/20 rounded-full animate-ping"></div>
-                      <div className="relative z-10 w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center">
-                        <RefreshCw className="animate-spin text-white" size={32} />
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-lg font-black tracking-tight">جاري استدعاء Gemini...</p>
-                      <p className="text-[10px] text-purple-400 font-bold uppercase tracking-widest mt-1">يتم الآن تحليل الأرقام والبيانات السحابية</p>
-                    </div>
-                  </div>
-                ) : selectedPlayer ? (
-                  <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-                    <div className="flex items-center gap-4 mb-6 p-4 bg-white/5 rounded-3xl border border-white/5">
-                      <div className="w-12 h-12 bg-purple-600 text-white rounded-2xl flex items-center justify-center font-black text-xl shadow-lg">
-                        {selectedPlayer.fullName?.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="text-xs font-black text-purple-400 uppercase tracking-widest">تقرير اللاعب</p>
-                        <h4 className="text-lg font-black">{selectedPlayer.fullName}</h4>
-                      </div>
-                    </div>
-
-                    <div className="bg-white/10 p-8 rounded-[2.5rem] border border-white/10 text-purple-100 leading-relaxed text-sm font-medium shadow-inner backdrop-blur-md relative">
-                       <div className="absolute top-4 left-4">
-                        <Sparkles size={20} className="text-purple-400 opacity-40" />
-                       </div>
-                       <p className="whitespace-pre-wrap">{aiInsight}</p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 mt-6">
-                      <div className="p-5 bg-white/5 rounded-3xl border border-white/5 flex items-center gap-3">
-                        <Zap size={20} className="text-amber-400" />
-                        <div>
-                          <p className="text-[9px] text-gray-500 font-black uppercase tracking-widest">التوصية</p>
-                          <p className="text-xs font-black">تركيز بدني</p>
-                        </div>
-                      </div>
-                      <div className="p-5 bg-white/5 rounded-3xl border border-white/5 flex items-center gap-3">
-                        <Trophy size={20} className="text-emerald-400" />
-                        <div>
-                          <p className="text-[9px] text-gray-500 font-black uppercase tracking-widest">المستوى</p>
-                          <p className="text-xs font-black">يتطور بسرعة</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="py-32 text-center space-y-6">
-                    <div className="w-24 h-24 bg-white/5 rounded-[2.5rem] flex items-center justify-center mx-auto border border-white/5 group-hover:scale-110 transition-transform">
-                      <BrainCircuit size={48} className="text-gray-700" />
-                    </div>
-                    <div>
-                      <p className="text-gray-500 font-black text-lg">اختر لاعباً للتحليل</p>
-                      <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-1">سيقوم الذكاء الاصطناعي بتقديم نصائح تطويرية</p>
-                    </div>
-                  </div>
-                )}
-             </div>
-             
-             <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-[100px] pointer-events-none"></div>
-             <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-600/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-[80px] pointer-events-none"></div>
+          )
+        ) : (
+          <div className="bg-white p-32 rounded-[3rem] border border-gray-100 text-center">
+             <Search size={64} className="mx-auto text-gray-100 mb-6" />
+             <p className="text-xl font-black text-gray-400 italic">لا يوجد نتائج تطابق بحثك حالياً..</p>
           </div>
-
-          <div className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-sm space-y-6">
-             <h4 className="font-black text-gray-800 flex items-center gap-2">
-                <Smartphone size={20} className="text-emerald-600" />
-                تواصل سريع
-             </h4>
-             <p className="text-xs text-gray-400 font-bold leading-relaxed">يمكنك إرسال إشعار مباشر لولي أمر اللاعب المختار بضغطة واحدة.</p>
-             <div className="flex gap-2">
-                <button className="flex-1 py-4 bg-emerald-50 text-emerald-600 rounded-2xl text-xs font-black hover:bg-emerald-600 hover:text-white transition-all shadow-sm">واتساب</button>
-                <button className="flex-1 py-4 bg-blue-50 text-blue-600 rounded-2xl text-xs font-black hover:bg-blue-600 hover:text-white transition-all shadow-sm">رسالة SMS</button>
-             </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -26,17 +26,17 @@ import {
 } from 'lucide-react';
 
 interface VisitorPortalProps {
+  academyName: string;
   onBack: () => void;
   onRegister: () => void;
   tourData?: { title: string; desc: string; img: string; videoUrl: string }[];
 }
 
-const VisitorPortal: React.FC<VisitorPortalProps> = ({ onBack, onRegister, tourData = [] }) => {
+const VisitorPortal: React.FC<VisitorPortalProps> = ({ academyName, onBack, onRegister, tourData = [] }) => {
   const [showTour, setShowTour] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // إعادة ضبط حالة التشغيل عند تغيير الشريحة
   useEffect(() => {
     setIsPlaying(false);
   }, [activeSlide]);
@@ -91,11 +91,9 @@ const VisitorPortal: React.FC<VisitorPortalProps> = ({ onBack, onRegister, tourD
 
   return (
     <div className="min-h-screen bg-white font-['Cairo'] text-right pb-20" dir="rtl">
-      {/* Tour Modal Overlay */}
       {showTour && (
         <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 md:p-8 bg-emerald-950/90 backdrop-blur-2xl animate-in fade-in">
           <div className="bg-white w-full max-w-6xl rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 flex flex-col lg:flex-row max-h-[90vh]">
-            {/* Left/Content Side */}
             <div className="lg:w-1/3 p-12 space-y-8 bg-gray-50/50 border-l border-gray-100 flex flex-col justify-center">
                <button onClick={() => setShowTour(false)} className="lg:hidden absolute top-6 left-6 p-2 text-gray-400"><X size={32}/></button>
                <div className="flex items-center gap-3">
@@ -123,7 +121,6 @@ const VisitorPortal: React.FC<VisitorPortalProps> = ({ onBack, onRegister, tourD
                </div>
             </div>
 
-            {/* Right/Media Side - Video Player Implementation */}
             <div className="flex-1 relative group bg-black flex items-center justify-center">
               {isPlaying && slides[activeSlide].videoUrl ? (
                 <div className="w-full h-full animate-in fade-in zoom-in-95 duration-500">
@@ -146,7 +143,6 @@ const VisitorPortal: React.FC<VisitorPortalProps> = ({ onBack, onRegister, tourD
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/60 via-transparent to-transparent"></div>
                   
-                  {/* Functional Play Button */}
                   {slides[activeSlide].videoUrl && (
                     <div className="absolute inset-0 flex items-center justify-center">
                        <button 
@@ -169,7 +165,6 @@ const VisitorPortal: React.FC<VisitorPortalProps> = ({ onBack, onRegister, tourD
                 </>
               )}
 
-              {/* Top Controls */}
               <div className="absolute top-10 left-10 right-10 flex justify-between items-start">
                   <button 
                     onClick={() => {setShowTour(false); setIsPlaying(false);}} 
@@ -201,7 +196,6 @@ const VisitorPortal: React.FC<VisitorPortalProps> = ({ onBack, onRegister, tourD
         </div>
       )}
 
-      {/* Navigation */}
       <nav className="sticky top-0 z-[100] bg-white/80 backdrop-blur-md border-b border-gray-100">
         <div className="container mx-auto px-6 py-6 flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -209,7 +203,7 @@ const VisitorPortal: React.FC<VisitorPortalProps> = ({ onBack, onRegister, tourD
                 <Trophy size={24} className="text-white" />
              </div>
              <div>
-                <h1 className="text-xl font-black text-gray-800 leading-none">أكاديمية النخبة</h1>
+                <h1 className="text-xl font-black text-gray-800 leading-none">{academyName}</h1>
                 <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1">بجدة - حي المرجان</p>
              </div>
           </div>
@@ -220,7 +214,6 @@ const VisitorPortal: React.FC<VisitorPortalProps> = ({ onBack, onRegister, tourD
         </div>
       </nav>
 
-      {/* Hero Section */}
       <section className="container mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
         <div className="space-y-10 animate-in fade-in slide-in-from-right-10 duration-700">
            <div className="inline-flex items-center gap-3 bg-emerald-50 text-emerald-700 px-6 py-2.5 rounded-full text-xs font-black shadow-sm border border-emerald-100">
@@ -232,7 +225,7 @@ const VisitorPortal: React.FC<VisitorPortalProps> = ({ onBack, onRegister, tourD
               <span className="text-emerald-600">الاحتراف الحقيقي</span>
            </h2>
            <p className="text-gray-500 text-xl leading-relaxed font-medium max-w-xl">
-              نحن لا نعلم كرة القدم فحسب، بل نبني شخصية اللاعب الرياضية باستخدام أحدث المناهج العالمية المدعومة بالتحليل الذكي.
+              في <span className="text-emerald-600 font-black">{academyName}</span>، نحن لا نعلم كرة القدم فحسب، بل نبني شخصية اللاعب الرياضية باستخدام أحدث المناهج العالمية المدعومة بالتحليل الذكي.
            </p>
            
            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
@@ -274,7 +267,6 @@ const VisitorPortal: React.FC<VisitorPortalProps> = ({ onBack, onRegister, tourD
               <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover" alt="Football training" />
               <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/40 to-transparent"></div>
            </div>
-           {/* Floating stats badge */}
            <div className="absolute -bottom-10 -right-10 bg-white p-8 rounded-[3rem] shadow-2xl z-20 border border-gray-50 animate-bounce duration-1000">
               <div className="flex items-center gap-4">
                  <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center">
@@ -290,7 +282,6 @@ const VisitorPortal: React.FC<VisitorPortalProps> = ({ onBack, onRegister, tourD
         </div>
       </section>
 
-      {/* Programs Section */}
       <section className="py-32 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="text-center space-y-4 mb-20">
@@ -334,11 +325,10 @@ const VisitorPortal: React.FC<VisitorPortalProps> = ({ onBack, onRegister, tourD
         </div>
       </section>
 
-      {/* Philosophy Section */}
       <section className="py-32 bg-emerald-950 relative overflow-hidden">
         <div className="container mx-auto px-6 flex flex-col lg:flex-row items-center gap-20">
           <div className="flex-1 space-y-8 relative z-10">
-            <h3 className="text-emerald-400 font-black text-sm uppercase tracking-widest">لماذا أكاديمية النخبة؟</h3>
+            <h3 className="text-emerald-400 font-black text-sm uppercase tracking-widest">لماذا {academyName}؟</h3>
             <h2 className="text-5xl font-black text-white tracking-tighter leading-tight">فلسفة تدريبية تركز على <br/>صناعة "القائد" قبل "اللاعب"</h2>
             <div className="space-y-6">
               {[
@@ -383,7 +373,6 @@ const VisitorPortal: React.FC<VisitorPortalProps> = ({ onBack, onRegister, tourD
         <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
       </section>
 
-      {/* Pricing Section */}
       <section className="py-32">
          <div className="container mx-auto px-6 text-center space-y-4 mb-20">
             <h3 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">الاستثمار الرياضي</h3>
@@ -429,7 +418,6 @@ const VisitorPortal: React.FC<VisitorPortalProps> = ({ onBack, onRegister, tourD
          </div>
       </section>
 
-      {/* Footer Info */}
       <footer className="container mx-auto px-6 py-20 border-t border-gray-100">
          <div className="flex flex-col md:flex-row justify-between items-center gap-12">
             <div className="flex items-center gap-6">
@@ -438,7 +426,7 @@ const VisitorPortal: React.FC<VisitorPortalProps> = ({ onBack, onRegister, tourD
                </div>
                <div>
                   <h5 className="font-black text-lg text-gray-800">موقعنا الرئيسي</h5>
-                  <p className="text-sm font-bold text-gray-400">جدة - حي المرجان - ملاعب أكاديمية النخبة</p>
+                  <p className="text-sm font-bold text-gray-400">جدة - حي المرجان - ملاعب {academyName}</p>
                </div>
             </div>
             <div className="flex gap-6">
@@ -454,7 +442,7 @@ const VisitorPortal: React.FC<VisitorPortalProps> = ({ onBack, onRegister, tourD
             </div>
          </div>
          <div className="mt-20 text-center">
-            <p className="text-[10px] text-gray-300 font-black uppercase tracking-[0.5em]">© 2024 جميع الحقوق محفوظة لأكاديمية النخبة الرقمية</p>
+            <p className="text-[10px] text-gray-300 font-black uppercase tracking-[0.5em]">© 2024 جميع الحقوق محفوظة لـ {academyName} الرقمية</p>
          </div>
       </footer>
     </div>

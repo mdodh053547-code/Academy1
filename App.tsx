@@ -65,6 +65,9 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [tabParams, setTabParams] = useState<any>(null);
   
+  // بيانات الأكاديمية العامة - يتم التحكم بها من الإعدادات
+  const [academyName, setAcademyName] = useState('أكاديمية النخبة');
+  
   const [adminProfile, setAdminProfile] = useState({
     name: 'مصطفى علي',
     password: '123'
@@ -92,7 +95,13 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const unsubscribe = subscribeToPlayers((data) => {
-      setPlayersList(data);
+      // التأكد من أن البيانات هي كائنات بسيطة لتجنب أخطاء circular structure
+      const plainPlayers = data.map(p => ({
+        ...p,
+        createdAt: p.createdAt?.seconds ? p.createdAt.seconds : p.createdAt,
+        lastUpdated: p.lastUpdated?.seconds ? p.lastUpdated.seconds : p.lastUpdated
+      }));
+      setPlayersList(plainPlayers);
     });
     return () => unsubscribe();
   }, []);
@@ -167,6 +176,7 @@ const App: React.FC = () => {
     if (portal === 'landing') {
       return (
         <LandingPage 
+          academyName={academyName}
           onStaffClick={() => { setLoginType('staff'); setShowLoginModal(true); setSelectedProfileForLogin(null); }} 
           onMemberClick={() => { setLoginType('member'); setShowLoginModal(true); setSelectedProfileForLogin(null); }}
           onVisitorClick={() => setPortal('visitor')}
@@ -174,9 +184,9 @@ const App: React.FC = () => {
         />
       );
     }
-    if (portal === 'member') return <MemberPortal onBack={logout} player={loggedInMember} />;
-    if (portal === 'visitor') return <VisitorPortal onBack={() => setPortal('landing')} onRegister={() => setPortal('registration')} tourData={tourData} />;
-    if (portal === 'registration') return <div className="min-h-screen bg-gray-50 p-6 md:p-20"><PlayerRegistration onBack={() => setPortal('visitor')} onSuccess={() => { setPortal('landing'); alert("تم تقديم طلب انضمام بنجاح! سيتم التواصل معكم قريباً."); }} /></div>;
+    if (portal === 'member') return <MemberPortal academyName={academyName} onBack={logout} player={loggedInMember} />;
+    if (portal === 'visitor') return <VisitorPortal academyName={academyName} onBack={() => setPortal('landing')} onRegister={() => setPortal('registration')} tourData={tourData} />;
+    if (portal === 'registration') return <div className="min-h-screen bg-gray-50 p-6 md:p-20"><PlayerRegistration academyName={academyName} onBack={() => setPortal('visitor')} onSuccess={() => { setPortal('landing'); alert("تم تقديم طلب انضمام بنجاح! سيتم التواصل معكم قريباً."); }} /></div>;
 
     const currentCoach = coachesList.find(c => c.id === activeCoachId);
     const coachTeam = userRole === UserRole.COACH ? currentCoach?.team : undefined;
@@ -191,7 +201,7 @@ const App: React.FC = () => {
       case 'performance': return <PerformancePanel restrictedTeam={coachTeam} />;
       case 'finance': return <FinancePanel />;
       case 'communication': return <CommunicationPanel params={tabParams} />;
-      case 'settings': return <SettingsPanel coaches={coachesList} onCoachesUpdate={setCoachesList} adminProfile={adminProfile} onAdminUpdate={setAdminProfile} academyLinks={academyLinks} onAcademyLinksUpdate={setAcademyLinks} tourData={tourData} onTourDataUpdate={setTourData} players={playersList} />;
+      case 'settings': return <SettingsPanel academyName={academyName} onAcademyNameUpdate={setAcademyName} coaches={coachesList} onCoachesUpdate={setCoachesList} adminProfile={adminProfile} onAdminUpdate={setAdminProfile} academyLinks={academyLinks} onAcademyLinksUpdate={setAcademyLinks} tourData={tourData} onTourDataUpdate={setTourData} players={playersList} />;
       default: return null;
     }
   };
@@ -202,13 +212,14 @@ const App: React.FC = () => {
     <>
       {portal === 'staff' ? (
         <Layout 
+          academyName={academyName}
           activeTab={activeTab} 
           setActiveTab={(tab) => navigateToTab(tab)} 
           userRole={userRole}
           userName={currentUserName}
           roleSwitcher={
             <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl border border-gray-100 shadow-inner">
-              <div className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${userRole === UserRole.ADMIN ? 'bg-emerald-600 text-white shadow-md' : 'text-gray-500'}`}>
+              <div className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${userRole === UserRole.ADMIN ? 'bg-emerald-600 text-white shadow-md' : 'text-gray-50'}`}>
                 <UserCog size={14} /> {userRole === UserRole.ADMIN ? 'مدير النظام' : 'مدرب'}
               </div>
               <button onClick={logout} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><LogOut size={16} /></button>
