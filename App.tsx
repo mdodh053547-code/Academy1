@@ -74,7 +74,7 @@ const App: React.FC = () => {
   });
 
   const [academyLinks, setAcademyLinks] = useState({
-    whatsapp: 'https://wa.me/966500000000',
+    whatsapp: 'https://wa.me/966580159643',
     instagram: 'https://instagram.com/academy',
     twitter: 'https://twitter.com/academy',
     maps: 'https://goo.gl/maps/example',
