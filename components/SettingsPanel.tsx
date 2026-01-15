@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Save, 
   UserCog, 
@@ -61,6 +61,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   
   const [showToast, setShowToast] = useState<{show: boolean, msg: string}>({show: false, msg: ''});
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+  const [isSaving, setIsSaving] = useState(false);
+
+  // مزامنة البيانات المحلية عند تحديث القائمة من المصدر
+  useEffect(() => {
+    setLocalCoaches(coaches);
+  }, [coaches]);
 
   const triggerToast = (msg: string) => {
     setShowToast({ show: true, msg });
@@ -70,6 +76,16 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const handleAdminSave = () => {
     onAdminUpdate(localAdmin);
     triggerToast("تم تحديث بيانات المدير بنجاح");
+  };
+
+  const handleCoachesSave = () => {
+    setIsSaving(true);
+    // تفعيل فوري لكلمات المرور الجديدة عبر تحديث الحالة الأبوية (App.tsx)
+    setTimeout(() => {
+      onCoachesUpdate(localCoaches);
+      setIsSaving(false);
+      triggerToast("تم اعتماد كلمات المرور والبيانات الجديدة للمدربين بنجاح");
+    }, 800);
   };
 
   const handleLinksSave = () => {
@@ -162,8 +178,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               <Users size={24} />
               <h3 className="text-xl font-black">إدارة الكادر التدريبي</h3>
             </div>
-            <button onClick={() => onCoachesUpdate(localCoaches)} className="px-6 py-2 bg-purple-600 text-white rounded-xl text-xs font-black hover:bg-purple-700 transition-all flex items-center gap-2 shadow-lg shadow-purple-100">
-              <Save size={16} /> اعتماد بيانات المدربين
+            <button 
+              onClick={handleCoachesSave} 
+              disabled={isSaving}
+              className="px-6 py-2 bg-purple-600 text-white rounded-xl text-xs font-black hover:bg-purple-700 transition-all flex items-center gap-2 shadow-lg shadow-purple-100 disabled:opacity-50 active:scale-95"
+            >
+              {isSaving ? <RefreshCw className="animate-spin" size={16} /> : <Save size={16} />}
+              اعتماد بيانات المدربين
             </button>
           </div>
           <div className="overflow-x-auto">
@@ -172,7 +193,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 <tr className="bg-gray-50 text-[10px] text-gray-400 font-black uppercase tracking-widest border-b border-gray-100">
                   <th className="px-8 py-4">المدرب / الفريق</th>
                   <th className="px-8 py-4">اسم المستخدم</th>
-                  <th className="px-8 py-4">كلمة المرور</th>
+                  <th className="px-8 py-4">كلمة المرور الحالية</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -197,7 +218,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                           const updated = localCoaches.map(c => c.id === coach.id ? { ...c, username: e.target.value } : c);
                           setLocalCoaches(updated);
                         }}
-                        className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 text-xs font-bold outline-none focus:bg-white focus:border-purple-300"
+                        className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 text-xs font-bold outline-none focus:bg-white focus:border-purple-300 w-full max-w-[150px]"
                       />
                     </td>
                     <td className="px-8 py-4">
@@ -209,8 +230,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                              const updated = localCoaches.map(c => c.id === coach.id ? { ...c, password: e.target.value } : c);
                              setLocalCoaches(updated);
                           }}
-                          placeholder="لا توجد كلمة مرور"
-                          className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 text-xs font-mono font-bold outline-none focus:bg-white focus:border-purple-300 pr-10"
+                          placeholder="أدخل كلمة مرور جديدة"
+                          className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-xs font-mono font-bold outline-none focus:bg-white focus:border-purple-300 pr-10 w-full max-w-[200px] text-purple-700"
                         />
                         <button 
                           onClick={() => togglePassword(coach.id)}
@@ -224,6 +245,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 ))}
               </tbody>
             </table>
+          </div>
+          <div className="p-6 bg-purple-50/50 border-t border-gray-100 flex items-start gap-3">
+             <Key size={16} className="text-purple-600 mt-1" />
+             <p className="text-[10px] text-purple-800 font-bold">ملاحظة: عند تغيير كلمة المرور هنا، يجب على المدرب استخدام الكلمة الجديدة في المرة القادمة التي يسجل فيها دخوله.</p>
           </div>
         </section>
       )}

@@ -18,7 +18,9 @@ import {
   UserCheck,
   Bell,
   GraduationCap,
-  Contact2
+  Contact2,
+  RotateCcw,
+  AlertCircle
 } from 'lucide-react';
 import { subscribeToPlayers } from '../services/playerService';
 import { MOCK_COACHES } from '../constants';
@@ -26,7 +28,7 @@ import { MOCK_COACHES } from '../constants';
 type TargetAudience = 'PARENTS' | 'COACHES' | 'PLAYERS';
 
 interface CommunicationPanelProps {
-  params?: { playerId?: string };
+  params?: { playerId?: string, message?: string, target?: TargetAudience };
 }
 
 const CommunicationPanel: React.FC<CommunicationPanelProps> = ({ params }) => {
@@ -41,6 +43,7 @@ const CommunicationPanel: React.FC<CommunicationPanelProps> = ({ params }) => {
   
   const [players, setPlayers] = useState<any[]>([]);
   const [isSending, setIsSending] = useState(false);
+  const [resendingId, setResendingId] = useState<number | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<'whatsapp' | 'sms'>('whatsapp');
 
@@ -55,15 +58,20 @@ const CommunicationPanel: React.FC<CommunicationPanelProps> = ({ params }) => {
       const activePlayers = data.filter(p => p.status === 'active');
       setPlayers(activePlayers);
       
-      // إذا تم تمرير ID لاعب من لوحة التحكم، قم بتحديده تلقائياً
       if (params?.playerId) {
+        setSendMode('individual');
+        setTargetAudience('PARENTS');
         const target = activePlayers.find(p => p.id === params.playerId);
         if (target) {
-          setSendMode('individual');
-          setTargetAudience('PARENTS');
           setSelectedIndividual(target);
           setMessageText(`نود إبلاغكم بأننا لاحظنا تراجعاً في نسبة حضور اللاعب ${target.fullName}، نرجو التكرم بالتعاون معنا لرفع مستوى الالتزام.`);
         }
+      } else if (params?.message) {
+        setSendMode('group');
+        setTargetAudience(params.target || 'PARENTS');
+        setMessageText(params.message);
+      } else if (params?.target) {
+        setTargetAudience(params.target);
       }
     });
     return () => unsubscribe();
@@ -98,6 +106,18 @@ const CommunicationPanel: React.FC<CommunicationPanelProps> = ({ params }) => {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     }, 1200);
+  };
+
+  const handleResend = (id: number) => {
+    setResendingId(id);
+    setTimeout(() => {
+      setMessages(prev => prev.map(m => 
+        m.id === id ? { ...m, status: 'sent', date: 'الآن' } : m
+      ));
+      setResendingId(null);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }, 1000);
   };
 
   const getSuggestions = () => {
@@ -350,12 +370,25 @@ const CommunicationPanel: React.FC<CommunicationPanelProps> = ({ params }) => {
                       <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{msg.date}</p>
                     </div>
                   </div>
-                  <span className={`text-[10px] font-black px-4 py-1.5 rounded-full border ${
-                    msg.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                    msg.status === 'read' ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-red-50 text-red-700 border-red-100'
-                  }`}>
-                    {msg.status === 'sent' ? 'تم الإرسال' : msg.status === 'read' ? 'تمت القراءة' : 'فشل الإرسال'}
-                  </span>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className={`text-[10px] font-black px-4 py-1.5 rounded-full border flex items-center gap-1.5 ${
+                      msg.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                      msg.status === 'read' ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-red-50 text-red-700 border-red-100'
+                    }`}>
+                      {msg.status === 'sent' ? <Check size={14} /> : msg.status === 'read' ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
+                      {msg.status === 'sent' ? 'تم الإرسال' : msg.status === 'read' ? 'تمت القراءة' : 'فشل الإرسال'}
+                    </span>
+                    {msg.status === 'failed' && (
+                      <button 
+                        onClick={() => handleResend(msg.id)}
+                        disabled={resendingId === msg.id}
+                        className="flex items-center gap-1.5 text-[10px] font-black text-red-600 hover:text-white hover:bg-red-600 border border-red-200 px-3 py-1.5 rounded-lg transition-all active:scale-95"
+                      >
+                        {resendingId === msg.id ? <RefreshCw className="animate-spin" size={12} /> : <RotateCcw size={12} />}
+                        إعادة إرسال
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-8 rounded-[2.5rem] border border-gray-100 border-dashed font-bold shadow-inner group-hover:bg-white transition-colors">
                   {msg.content}

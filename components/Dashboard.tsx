@@ -44,10 +44,12 @@ import {
   X,
   BrainCircuit,
   Sparkles,
-  Cloud
+  Cloud,
+  ChevronLeft,
+  ChevronRight,
+  BookOpen
 } from 'lucide-react';
 import { subscribeToPlayers, syncGlobalState } from '../services/playerService';
-import { generateTrainingPlan } from '../services/geminiService';
 
 interface DashboardProps {
   userRole: UserRole;
@@ -56,6 +58,33 @@ interface DashboardProps {
   onViewRequests?: () => void;
   onGoToTab?: (tab: string, params?: any) => void;
 }
+
+const FIXED_PLANS = [
+  {
+    id: 'p1',
+    title: 'تطوير بناء اللعب من الخلف',
+    category: 'تكتيكي',
+    duration: '90 دقيقة',
+    details: '1. إحماء بالكرة (15د)\n2. تمرير في مساحات ضيقة (20د)\n3. التحرك لفتح زوايا التمرير (25د)\n4. مناورة تطبيقية 8 ضد 8 (30د)',
+    icon: <Zap className="text-amber-500" />
+  },
+  {
+    id: 'p2',
+    title: 'رفع الكفاءة اللياقية والتحمل',
+    category: 'بدني',
+    duration: '75 دقيقة',
+    details: '1. جري تزايدي (10د)\n2. تدريبات سرعة ورد فعل (20د)\n3. محطات تقوية عضلية (25د)\n4. إطالات وتبريد (20د)',
+    icon: <Activity className="text-emerald-500" />
+  },
+  {
+    id: 'p3',
+    title: 'إتقان أساسيات المراوغة (U11)',
+    category: 'أساسيات',
+    duration: '60 دقيقة',
+    details: '1. التحكم بالكرة بالقدمين (15د)\n2. مراوغة الأقماع المتعرجة (20د)\n3. مواقف 1 ضد 1 (20د)\n4. تحدي الدقة (5د)',
+    icon: <Star className="text-blue-500" />
+  }
+];
 
 const StatCard: React.FC<{ item: any, onClick?: () => void }> = ({ item, onClick }) => (
   <div 
@@ -80,10 +109,9 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole, adminName = 'مصطفى
   const [pendingRequests, setPendingRequests] = useState<number>(0);
   const [syncStage, setSyncStage] = useState<'idle' | 'connecting' | 'players' | 'success'>('idle');
   
-  // حالات خطة التدريب (Gemini)
-  const [showPlanModal, setShowPlanModal] = useState(false);
-  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
-  const [aiPlan, setAiPlan] = useState('');
+  // حالات الخطط الثابتة
+  const [showPlansModal, setShowPlansModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
 
   const isAdmin = userRole === UserRole.ADMIN;
   const isCoach = userRole === UserRole.COACH;
@@ -105,14 +133,6 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole, adminName = 'مصطفى
     setTimeout(() => setSyncStage('idle'), 3000);
   };
 
-  const handleShowAiPlan = async () => {
-    setShowPlanModal(true);
-    setIsGeneratingPlan(true);
-    const plan = await generateTrainingPlan("فريق الصقور - U11 - تدريب تكتيكي مسائي بجدة");
-    setAiPlan(plan);
-    setIsGeneratingPlan(false);
-  };
-
   const chartData = [
     { name: 'سبت', attendance: 85, revenue: 4000 },
     { name: 'أحد', attendance: 90, revenue: 3000 },
@@ -126,40 +146,91 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole, adminName = 'مصطفى
   return (
     <div className="space-y-10 animate-in fade-in duration-700 pb-10 text-right font-['Cairo']" dir="rtl">
       
-      {/* Modal: AI Training Plan */}
-      {showPlanModal && (
+      {/* Modal: Fixed Training Plans */}
+      {showPlansModal && (
         <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-emerald-950/60 backdrop-blur-xl animate-in fade-in">
-          <div className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95">
+          <div className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 flex flex-col max-h-[90vh]">
             <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-purple-100 text-purple-600 rounded-2xl animate-pulse">
-                    <BrainCircuit size={24} />
+                  <div className="p-3 bg-emerald-100 text-emerald-600 rounded-2xl">
+                    <BookOpen size={24} />
                   </div>
-                  <h3 className="text-xl font-black text-gray-800">خطة التدريب الذكية - Gemini AI</h3>
+                  <div>
+                    <h3 className="text-xl font-black text-gray-800">مكتبة الخطط التدريبية</h3>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">خطط فنية معتمدة من الأكاديمية</p>
+                  </div>
                </div>
-               <button onClick={() => setShowPlanModal(false)} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full"><X size={24}/></button>
+               <button onClick={() => { setShowPlansModal(false); setSelectedPlan(null); }} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full"><X size={24}/></button>
             </div>
-            <div className="p-10 max-h-[60vh] overflow-y-auto custom-scrollbar">
-              {isGeneratingPlan ? (
-                <div className="py-20 text-center space-y-6">
-                  <RefreshCw size={48} className="animate-spin text-purple-600 mx-auto" />
-                  <p className="text-gray-500 font-bold">جاري تحليل الأهداف التدريبية وبناء الخطة...</p>
+            
+            <div className="p-8 flex-1 overflow-y-auto custom-scrollbar">
+              {!selectedPlan ? (
+                <div className="space-y-4">
+                  {FIXED_PLANS.map(plan => (
+                    <button 
+                      key={plan.id}
+                      onClick={() => setSelectedPlan(plan)}
+                      className="w-full p-6 bg-gray-50 border border-gray-100 rounded-[2rem] flex items-center justify-between hover:bg-emerald-50 hover:border-emerald-200 transition-all group"
+                    >
+                      <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                          {plan.icon}
+                        </div>
+                        <div className="text-right">
+                          <h4 className="font-black text-gray-800">{plan.title}</h4>
+                          <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">{plan.category} • {plan.duration}</p>
+                        </div>
+                      </div>
+                      <ChevronLeft className="text-gray-300 group-hover:text-emerald-600 group-hover:-translate-x-2 transition-all" size={20} />
+                    </button>
+                  ))}
                 </div>
               ) : (
-                <div className="prose prose-emerald max-w-none">
-                  <div className="bg-purple-50 p-8 rounded-[2rem] border border-purple-100 text-purple-900 font-medium leading-relaxed whitespace-pre-wrap text-sm">
-                    {aiPlan}
-                  </div>
+                <div className="space-y-8 animate-in slide-in-from-left-4">
+                   <div className="flex items-center gap-4 pb-4 border-b border-gray-50">
+                      <button onClick={() => setSelectedPlan(null)} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full"><ChevronRight size={24} /></button>
+                      <div>
+                        <h4 className="text-2xl font-black text-emerald-600">{selectedPlan.title}</h4>
+                        <p className="text-xs text-gray-400 font-bold uppercase">{selectedPlan.category} • المنهج الرسمي</p>
+                      </div>
+                   </div>
+                   
+                   <div className="bg-emerald-50/50 p-8 rounded-[2.5rem] border border-emerald-100 space-y-6">
+                      <div className="flex items-center gap-2 text-emerald-700 font-black mb-4">
+                        <Clock size={18} />
+                        التوزيع الزمني للحصة
+                      </div>
+                      <p className="text-sm font-bold text-gray-700 leading-loose whitespace-pre-wrap">
+                        {selectedPlan.details}
+                      </p>
+                   </div>
                 </div>
               )}
             </div>
-            <div className="p-8 border-t border-gray-50 flex gap-4">
-               <button onClick={() => window.print()} className="flex-1 py-4 bg-gray-100 text-gray-600 font-black rounded-2xl hover:bg-gray-200 transition-all flex items-center justify-center gap-2">
-                 <Share2 size={18} /> مشاركة/طباعة
+            
+            <div className="p-8 border-t border-gray-50 flex gap-4 bg-gray-50/30">
+               <button onClick={() => window.print()} className="flex-1 py-4 bg-white border border-gray-200 text-gray-600 font-black rounded-2xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm">
+                 <Share2 size={18} /> طباعة الخطة
                </button>
-               <button onClick={() => setShowPlanModal(false)} className="flex-1 py-4 bg-emerald-600 text-white font-black rounded-2xl shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all">
-                 فهمت الخطة
-               </button>
+               {selectedPlan && (
+                 <button 
+                  onClick={() => {
+                    onGoToTab?.('communication', { 
+                      message: `كابتن أكاديمية النخبة يحييكم،\nإليكم الخطة التدريبية للأسبوع القادم:\n\n*الهدف:* ${selectedPlan.title}\n*الفئة:* ${selectedPlan.category}\n*التفاصيل:*\n${selectedPlan.details}\n\nنأمل من الجميع الالتزام بالمواعيد والتحضير الجيد.`,
+                      target: 'PARENTS'
+                    });
+                    setShowPlansModal(false);
+                  }}
+                  className="flex-1 py-4 bg-emerald-600 text-white font-black rounded-2xl shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
+                 >
+                   <MessageCircle size={18} /> إرسال للأهالي
+                 </button>
+               )}
+               {!selectedPlan && (
+                 <button onClick={() => { setShowPlansModal(false); setSelectedPlan(null); }} className="flex-1 py-4 bg-gray-800 text-white font-black rounded-2xl shadow-lg hover:bg-gray-900 transition-all">
+                   إغلاق
+                 </button>
+               )}
             </div>
           </div>
         </div>
@@ -189,11 +260,11 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole, adminName = 'مصطفى
                       بدء التحضير الفوري
                     </button>
                     <button 
-                      onClick={handleShowAiPlan}
+                      onClick={() => setShowPlansModal(true)}
                       className="bg-emerald-500/20 border border-white/20 text-white px-6 py-4 rounded-2xl font-black text-sm hover:bg-white/10 transition-all flex items-center gap-2"
                     >
-                      <Sparkles size={18} />
-                      عرض خطة التمرين
+                      <BookOpen size={18} />
+                      عرض الخطط الثابتة
                     </button>
                   </div>
                </div>
@@ -225,7 +296,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole, adminName = 'مصطفى
                       </div>
                       <div>
                         <p className="text-xs font-black text-gray-800">{p.fullName?.split(' ')[0]}</p>
-                        <p className="text-[9px] text-gray-400 font-bold uppercase">الحضور: {p.attendanceRate}%</p>
+                        <p className="text-[9px] text-gray-400 font-bold uppercase">الحضور: {p.attendanceRate || 0}%</p>
                       </div>
                    </div>
                    <button 
@@ -284,7 +355,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole, adminName = 'مصطفى
               </div>
             </div>
             <div className="hidden lg:block">
-               <div className="w-64 h-64 bg-emerald-800 rounded-[4rem] border-8 border-emerald-700/50 flex flex-col items-center justify-center rotate-3 shadow-2xl group hover:rotate-0 transition-transform">
+               <div className="w-64 h-64 bg-emerald-800 rounded-[4rem] border-8 border-emerald-700/50 flex items-center justify-center rotate-3 shadow-2xl group hover:rotate-0 transition-transform">
                   <Trophy size={80} className="text-amber-400 mb-4 drop-shadow-xl" />
                   <p className="text-xs font-black uppercase tracking-widest">موسم 2024</p>
                </div>
@@ -413,7 +484,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole, adminName = 'مصطفى
                  {[
                    { id: 'attendance', t: 'رصد غياب حصة اليوم (فريق الصقور)', d: '05:00 م', done: false },
                    { id: 'performance', t: 'تحديث تقييم اللاعب فيصل الغامدي', d: 'عاجل', done: false },
-                   { id: 'communication', t: 'إرسال خطة التدريب الأسبوعية للأهالي', d: 'غداً', done: true },
+                   { id: 'communication', t: 'إرسال خطة التدريب الأسبوعية للأهالي', d: 'غداً', done: false },
                  ].map((task, i) => (
                    <div key={i} className={`p-6 rounded-[1.8rem] border flex items-center justify-between transition-all group ${task.done ? 'bg-gray-50 opacity-60' : 'bg-white hover:border-emerald-200 hover:shadow-xl'}`}>
                       <div className="flex items-center gap-4">
@@ -427,7 +498,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole, adminName = 'مصطفى
                       </div>
                       {!task.done && (
                         <button 
-                          onClick={() => onGoToTab?.(task.id)}
+                          onClick={() => onGoToTab?.(task.id, task.id === 'communication' ? { target: 'PARENTS' } : undefined)}
                           className="text-[10px] font-black text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           انتقال للمهمة ←

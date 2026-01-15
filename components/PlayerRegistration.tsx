@@ -4,6 +4,27 @@ import { ArrowRight, Upload, User, Users, Phone, Mail, Calendar, Info, ShieldChe
 import { AGE_GROUPS, LEVELS, TEAMS } from '../constants';
 import { registerNewPlayer } from '../services/playerService';
 
+// تم نقل هذا المكون للخارج لمنع فقدان التركيز (Focus) أثناء الكتابة
+const InputGroup = ({ label, icon: Icon, type = "text", placeholder, name, required = true, value, onChange }: any) => (
+  <div className="space-y-2 text-right">
+    <label className="text-xs font-black text-gray-500 uppercase tracking-widest mr-4">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <div className="relative">
+      <Icon className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+      <input
+        type={type}
+        name={name}
+        required={required}
+        value={value}
+        onChange={onChange}
+        className="w-full pr-14 pl-6 py-4 bg-gray-50 border border-gray-100 rounded-[1.8rem] outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all text-sm font-bold shadow-inner"
+        placeholder={placeholder}
+      />
+    </div>
+  </div>
+);
+
 interface PlayerRegistrationProps {
   onBack: () => void;
   onSuccess: () => void;
@@ -30,6 +51,11 @@ const PlayerRegistration: React.FC<PlayerRegistrationProps> = ({ onBack, onSucce
     team: TEAMS[0],
   });
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'id' | 'photo') => {
     if (e.target.files && e.target.files[0]) {
       if (type === 'id') setIdFile(e.target.files[0]);
@@ -40,6 +66,10 @@ const PlayerRegistration: React.FC<PlayerRegistrationProps> = ({ onBack, onSucce
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (step < 2) {
+      if (!formData.fullName.trim()) {
+        alert("يرجى إدخال اسم اللاعب الكامل أولاً");
+        return;
+      }
       setStep(2);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
@@ -55,26 +85,9 @@ const PlayerRegistration: React.FC<PlayerRegistrationProps> = ({ onBack, onSucce
     }
   };
 
-  const InputGroup = ({ label, icon: Icon, type = "text", placeholder, name, required = true }: any) => (
-    <div className="space-y-2">
-      <label className="text-xs font-black text-gray-500 uppercase tracking-widest mr-4">{label} {required && <span className="text-red-500">*</span>}</label>
-      <div className="relative">
-        <Icon className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-        <input
-          type={type}
-          name={name}
-          required={required}
-          className="w-full pr-14 pl-6 py-4 bg-gray-50 border border-gray-100 rounded-[1.8rem] outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all text-sm font-bold shadow-inner"
-          placeholder={placeholder}
-          value={(formData as any)[name]}
-          onChange={(e) => setFormData({ ...formData, [name]: e.target.value })}
-        />
-      </div>
-    </div>
-  );
-
   return (
-    <div className="max-w-4xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-700 pb-24 text-right" dir="rtl">
+    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 pb-24 text-right" dir="rtl">
+      {/* Header */}
       <div className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-6">
           <button onClick={onBack} className="p-4 bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-[1.5rem] transition-all">
@@ -95,32 +108,80 @@ const PlayerRegistration: React.FC<PlayerRegistrationProps> = ({ onBack, onSucce
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-10">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* خانة اسم اللاعب - تبقى مفتوحة وظاهرة دائماً */}
+        <section className="bg-white p-10 rounded-[3rem] border border-emerald-100 shadow-sm border-r-8 border-r-emerald-500 animate-in fade-in">
+          <div className="flex items-center gap-4 mb-6 text-emerald-600">
+            <div className="p-3 bg-emerald-50 rounded-2xl">
+              <User size={24} />
+            </div>
+            <h3 className="text-xl font-black tracking-tight">هوية اللاعب الأساسية</h3>
+          </div>
+          <InputGroup 
+            label="اسم اللاعب الكامل" 
+            icon={User} 
+            name="fullName" 
+            placeholder="الاسم الرباعي الرسمي" 
+            value={formData.fullName}
+            onChange={handleInputChange}
+          />
+        </section>
+
         {step === 1 ? (
-          <div className="space-y-10 animate-in slide-in-from-left-6 duration-500">
-            <section className="bg-white p-12 rounded-[3.5rem] border border-gray-100 shadow-sm overflow-hidden">
-              <div className="flex items-center gap-4 mb-10 text-emerald-600">
-                <div className="p-3 bg-emerald-50 rounded-2xl">
-                  <User size={28} />
+          <div className="space-y-8 animate-in slide-in-from-left-6 duration-500">
+            <section className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden">
+              <div className="flex items-center gap-4 mb-8 text-blue-600">
+                <div className="p-3 bg-blue-50 rounded-2xl">
+                  <Info size={24} />
                 </div>
-                <h3 className="text-2xl font-black tracking-tight">البيانات الشخصية</h3>
+                <h3 className="text-xl font-black tracking-tight">بيانات التواصل والبيانات العامة</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <InputGroup label="اسم اللاعب الكامل" icon={User} name="fullName" placeholder="الاسم الرباعي" />
-                <InputGroup label="تاريخ الميلاد" icon={Calendar} name="birthDate" type="date" />
-                <InputGroup label="اسم ولي الأمر" icon={Users} name="parentName" placeholder="الأب أو الوكيل" />
-                <InputGroup label="رقم الجوال" icon={Phone} name="parentPhone" placeholder="05XXXXXXXX" />
+                <InputGroup 
+                  label="تاريخ الميلاد" 
+                  icon={Calendar} 
+                  name="birthDate" 
+                  type="date" 
+                  value={formData.birthDate}
+                  onChange={handleInputChange}
+                />
+                <InputGroup 
+                  label="اسم ولي الأمر" 
+                  icon={Users} 
+                  name="parentName" 
+                  placeholder="الأب أو الوكيل" 
+                  value={formData.parentName}
+                  onChange={handleInputChange}
+                />
+                <InputGroup 
+                  label="رقم الجوال" 
+                  icon={Phone} 
+                  name="parentPhone" 
+                  placeholder="05XXXXXXXX" 
+                  value={formData.parentPhone}
+                  onChange={handleInputChange}
+                />
+                <InputGroup 
+                  label="البريد الإلكتروني (اختياري)" 
+                  icon={Mail} 
+                  name="parentEmail" 
+                  type="email" 
+                  placeholder="example@mail.com" 
+                  required={false} 
+                  value={formData.parentEmail}
+                  onChange={handleInputChange}
+                />
               </div>
             </section>
           </div>
         ) : (
-          <div className="space-y-10 animate-in slide-in-from-left-6 duration-500">
-            <section className="bg-white p-12 rounded-[3.5rem] border border-gray-100 shadow-sm">
-              <div className="flex items-center gap-4 mb-10 text-purple-600">
+          <div className="space-y-8 animate-in slide-in-from-left-6 duration-500">
+            <section className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm">
+              <div className="flex items-center gap-4 mb-8 text-purple-600">
                 <div className="p-3 bg-purple-50 rounded-2xl">
-                  <Upload size={28} />
+                  <Upload size={24} />
                 </div>
-                <h3 className="text-2xl font-black tracking-tight">المستندات المطلوبة</h3>
+                <h3 className="text-xl font-black tracking-tight">المستندات المطلوبة</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="relative border-4 border-dashed border-gray-100 rounded-[3rem] p-12 hover:border-emerald-500 hover:bg-emerald-50/50 transition-all text-center group">
@@ -143,8 +204,11 @@ const PlayerRegistration: React.FC<PlayerRegistrationProps> = ({ onBack, onSucce
               <div className="mt-12 p-8 bg-blue-50 rounded-[2.5rem] border border-blue-100 flex items-start gap-4">
                 <ShieldCheck size={28} className="text-blue-600 shrink-0" />
                 <div>
-                  <h4 className="font-black text-blue-900 mb-1 text-lg">خطوتك القادمة</h4>
-                  <p className="text-sm text-blue-800 font-bold leading-relaxed">بمجرد إرسال الطلب، سيتم مراجعته من قبل إدارة الأكاديمية. عند الموافقة، ستصلك رسالة لإتمام عملية السداد وتفعيل عضويتك رسمياً.</p>
+                  <h4 className="font-black text-blue-900 mb-1 text-lg">مراجعة البيانات</h4>
+                  <p className="text-sm text-blue-800 font-bold leading-relaxed">
+                    أنت تسجل الآن اللاعب: <span className="font-black text-blue-600 underline">{formData.fullName || '...'}</span>. 
+                    سيتم مراجعة الطلب من قبل الإدارة وإرسال الموافقة فور تدقيق المستندات.
+                  </p>
                 </div>
               </div>
             </section>

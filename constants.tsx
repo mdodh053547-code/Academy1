@@ -50,11 +50,11 @@ export const AGE_GROUPS = [
 ];
 
 export const MOCK_COACHES = [
-  { id: 'c1', username: 'saleh', password: '', name: 'كابتن صالح المحمدي', team: 'فريق الصقور', players: 24, specialty: 'تكتيك وهجوم', phone: '0501112223', attendance: '96%', category: AGE_GROUPS[0] },
-  { id: 'c2', username: 'fahd', password: '', name: 'كابتن فهد العيسى', team: 'فريق النمور', players: 22, specialty: 'لياقة بدنية', phone: '0503334445', attendance: '92%', category: AGE_GROUPS[0] },
-  { id: 'c3', username: 'yasser', password: '', name: 'كابتن ياسر القحطاني', team: 'فريق المستقبل', players: 18, specialty: 'أساسيات المهارة', phone: '0505556667', attendance: '89%', category: AGE_GROUPS[1] },
-  { id: 'c4', username: 'otayf', password: '', name: 'كابتن عبدالله عطيف', team: 'فريق الأبطال', players: 20, specialty: 'وسط ومناورة', phone: '0507778889', attendance: '94%', category: AGE_GROUPS[1] },
-  { id: 'c5', username: 'mansour', password: '', name: 'كابتن منصور الحربي', team: 'فريق النجوم', players: 21, specialty: 'دفاع وتغطية', phone: '0509990001', attendance: '91%', category: AGE_GROUPS[2] },
+  { id: 'c1', username: 'saleh', password: '123', name: 'كابتن صالح المحمدي', team: 'فريق الصقور', players: 24, specialty: 'تكتيك وهجوم', phone: '0501112223', attendance: '96%', category: AGE_GROUPS[0] },
+  { id: 'c2', username: 'fahd', password: '123', name: 'كابتن فهد العيسى', team: 'فريق النمور', players: 22, specialty: 'لياقة بدنية', phone: '0503334445', attendance: '92%', category: AGE_GROUPS[0] },
+  { id: 'c3', username: 'yasser', password: '123', name: 'كابتن ياسر القحطاني', team: 'فريق المستقبل', players: 18, specialty: 'أساسيات المهارة', phone: '0505556667', attendance: '89%', category: AGE_GROUPS[1] },
+  { id: 'c4', username: 'otayf', password: '123', name: 'كابتن عبدالله عطيف', team: 'فريق الأبطال', players: 20, specialty: 'وسط ومناورة', phone: '0507778889', attendance: '94%', category: AGE_GROUPS[1] },
+  { id: 'c5', username: 'mansour', password: '123', name: 'كابتن منصور الحربي', team: 'فريق النجوم', players: 21, specialty: 'دفاع وتغطية', phone: '0509990001', attendance: '91%', category: AGE_GROUPS[2] },
 ];
 
 export const LEVELS = [
